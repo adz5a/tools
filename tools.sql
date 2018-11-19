@@ -33,7 +33,10 @@ select
     backend_start,
     waiting
 from pg_catalog.pg_stat_activity
-where state <> 'idle'
+where (
+    state <> 'idle'
+    and pid <> pg_backend_pid()
+);
 
 
 -- Kill a connexion
@@ -71,8 +74,8 @@ WHERE (
  fastpath           | boolean  |           |          | 
 */
 select
+    pg_sa.pid,
     pg_sa.query,
-    pg_l.database,
     pg_l.mode,
     pg_c.relname,
     pg_l.virtualtransaction
@@ -82,5 +85,8 @@ join pg_catalog.pg_class pg_c on (
 )
 join pg_catalog.pg_stat_activity pg_sa on (
     pg_sa.pid = pg_l.pid
+)
+where (
+    pg_sa.pid <> pg_backend_pid()
 )
 order by query
