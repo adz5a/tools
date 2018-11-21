@@ -73,6 +73,7 @@ WHERE (
  granted            | boolean  |           |          | 
  fastpath           | boolean  |           |          | 
 */
+-- List all current locks
 select
     pg_sa.pid,
     pg_sa.query,
@@ -89,4 +90,20 @@ join pg_catalog.pg_stat_activity pg_sa on (
 where (
     pg_sa.pid <> pg_backend_pid()
 )
-order by query
+order by query;
+
+-- Counts for all different locks
+select
+    pg_l.mode,
+    count(*)
+from pg_catalog.pg_locks pg_l
+join pg_catalog.pg_class pg_c on (
+    pg_l.relation = pg_c.oid
+)
+join pg_catalog.pg_stat_activity pg_sa on (
+    pg_sa.pid = pg_l.pid
+)
+where (
+    pg_sa.pid <> pg_backend_pid()
+)
+group by pg_l.mode;
